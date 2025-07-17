@@ -59,6 +59,10 @@ exports.signupHandler = signupHandler;
 const loginHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { email, password } = req.body;
+        if (!email || !password)
+            return res.json({
+                error: "Please provide the email and password"
+            });
         const result = yield AuthService.login(email, password);
         res.json(result);
     }

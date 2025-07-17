@@ -14,14 +14,40 @@ const client_1 = require("@prisma/client");
 const hash_1 = require("../utils/hash");
 const jwt_1 = require("../utils/jwt");
 const prisma = new client_1.PrismaClient();
+const genreateAccessTokenAndRefreshToken = (userId) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const user = yield prisma.user.findUnique(userId);
+        if (!user) {
+            return;
+        }
+        const accessToken = (0, jwt_1.generateAccessToken)(userId);
+        const refreshToken = (0, jwt_1.generateRefreshToken)(userId);
+        yield prisma.user.update({
+            where: {
+                id: userId
+            },
+            data: {
+                refreshToken: refreshToken
+            }
+        });
+        return {
+            accessToken,
+            refreshToken,
+        };
+    }
+    catch (error) {
+        console.error('Error generating tokens:', error);
+        throw error;
+    }
+});
 const signup = (email, password) => __awaiter(void 0, void 0, void 0, function* () {
     const existing = yield prisma.user.findUnique({ where: { email } });
     if (existing)
         throw new Error('Email already exists');
     const hashed = yield (0, hash_1.hashPassword)(password);
     const user = yield prisma.user.create({ data: { email, password: hashed } });
-    const token = (0, jwt_1.generateToken)({ userId: user.id });
-    return { token };
+    const token = genreateAccessTokenAndRefreshToken({ userId: user.id });
+    return { user, token };
 });
 exports.signup = signup;
 const login = (email, password) => __awaiter(void 0, void 0, void 0, function* () {
@@ -31,7 +57,7 @@ const login = (email, password) => __awaiter(void 0, void 0, void 0, function* (
     const isValid = yield (0, hash_1.coparePassword)(password, user.password);
     if (!isValid)
         throw new Error('Invalid credentials');
-    const token = (0, jwt_1.generateToken)({ userId: user.id });
+    const token = genreateAccessTokenAndRefreshToken({ userId: user.id });
     return { token };
 });
 exports.login = login;

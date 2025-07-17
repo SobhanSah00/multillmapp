@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const cors_1 = __importDefault(require("cors"));
+const cookie_parser_1 = __importDefault(require("cookie-parser"));
 dotenv_1.default.config({
     path: "./.env"
 });
@@ -16,6 +17,9 @@ app.use((0, cors_1.default)({
 }));
 app.use(express_1.default.urlencoded({ extended: true, limit: "16mb" }));
 app.use(express_1.default.json());
-const auth_router_1 = __importDefault(require("./modules/auth/auth.router"));
-app.use('/api/v1/auth', auth_router_1.default);
+app.use((0, cookie_parser_1.default)());
+const auth_route_1 = __importDefault(require("./modules/auth/auth.route"));
+const user_route_1 = __importDefault(require("./modules/user/user.route"));
+app.use('/api/v1/auth', auth_route_1.default);
+app.use('/api/v1/user', user_route_1.default);
 exports.default = app;

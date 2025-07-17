@@ -1,26 +1,35 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.requireAuth = void 0;
-const jwt_1 = require("../utils/jwt");
-const requireAuth = (req, res, next) => {
+import { Request, Response, NextFunction } from "express"
+import { verifyToken } from "../utils/jwt"
+
+export interface AuthenticatedRequest extends Request {
+    user?: {
+        userId: string
+    }
+}
+
+export const requireAuth = (
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+) => {
     console.log("hello i am inside the require auth");
     const authHeader = req.headers.authorization;
     console.log(authHeader);
-    if (!(authHeader === null || authHeader === void 0 ? void 0 : authHeader.startsWith('Bearer '))) {
+    if (!authHeader?.startsWith('Bearer ')) {
         return res.status(401).json({
             error: 'Unauthorized'
-        });
+        })
     }
+
     const token = authHeader.split(' ')[1];
     console.log(token);
+
     try {
-        const decoded = (0, jwt_1.verifyToken)(token);
+        const decoded = verifyToken(token) as { userId: string }
         console.log("Decoded as JWT : " + decoded);
         req.user = decoded;
         next();
-    }
-    catch (error) {
+    } catch (error) {
         return res.status(401).json({ error: 'Invalid or expired token' });
     }
-};
-exports.requireAuth = requireAuth;
+}
