@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express"
-import { verifyToken } from "../utils/jwt"
+import { verifyAccessToken } from "../utils/jwt"
 
 export interface AuthenticatedRequest extends Request {
     user?: {
@@ -12,24 +12,21 @@ export const requireAuth = (
     res: Response,
     next: NextFunction
 ) => {
-    console.log("hello i am inside the require auth");
-    const authHeader = req.headers.authorization;
-    console.log(authHeader);
-    if (!authHeader?.startsWith('Bearer ')) {
-        return res.status(401).json({
-            error: 'Unauthorized'
-        })
+    let token: string | undefined;
+
+    token = req.cookies['access_token'];
+    if (!token) {
+        return res.status(401).json({ error: "Unauthorized: No token found" });
     }
 
-    const token = authHeader.split(' ')[1];
-    console.log(token);
-
     try {
-        const decoded = verifyToken(token) as { userId: string }
-        console.log("Decoded as JWT : " + decoded);
+        const decoded = verifyAccessToken(token) as { userId: string };
+        console.log(req.user);
+        console.log(req.user?.userId)
+        console.log(typeof decoded)
         req.user = decoded;
         next();
     } catch (error) {
-        return res.status(401).json({ error: 'Invalid or expired token' });
+        return res.status(401).json({ error: "Invalid or expired token" });
     }
-}
+};
