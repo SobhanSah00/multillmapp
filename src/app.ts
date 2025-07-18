@@ -21,8 +21,10 @@ app.use(cookieParser());
 
 import authRouter from "./router/auth.route"
 import userRouter from "./router/user.route"
+import queryRouter from "./router/query.route"
 
 app.use('/api/v1/auth', authRouter)
 app.use('/api/v1/user', userRouter)
+app.use('/api/v1/query', queryRouter)
 
 export default app
